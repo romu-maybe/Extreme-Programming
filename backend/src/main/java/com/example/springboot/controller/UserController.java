@@ -99,7 +99,7 @@ public class UserController {
         Page<User> page = userService.selectByPage(pageNum, pageSize, username, name, collect);
         return Result.success(page);
     }
-    
+
     @GetMapping("/export")
     public void exportData(@RequestParam(required = false) String username,
                            @RequestParam(required = false) String name,
@@ -122,7 +122,21 @@ public class UserController {
         outputStream.flush();
         outputStream.close();
     }
+    @PostMapping("/import")
+    public Result importData(MultipartFile file) throws IOException {
+        ExcelReader reader = ExcelUtil.getReader(file.getInputStream());
+        List<User> userList = reader.readAll(User.class);
 
+        try {
+            for (User user : userList) {
+                userService.insertUser(user); // 调用逐条插入的方法
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("逐条保存数据时出错：" + e.getMessage());
+        }
+        return Result.success("数据导入成功");
+    }
 
 
 
