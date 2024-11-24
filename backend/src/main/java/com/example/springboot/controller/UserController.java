@@ -99,7 +99,29 @@ public class UserController {
         Page<User> page = userService.selectByPage(pageNum, pageSize, username, name, collect);
         return Result.success(page);
     }
+    
+    @GetMapping("/export")
+    public void exportData(@RequestParam(required = false) String username,
+                           @RequestParam(required = false) String name,
+                           HttpServletResponse response) throws IOException {
+        ExcelWriter writer = ExcelUtil.getWriter(true);
+        // 第一种全部导出
+        List<User> list = new ArrayList<>();
+        if(StrUtil.isBlank(username)&&StrUtil.isBlank(name)){
+            list = userService.selectAll();
+        }
 
+
+        writer.write(list, true);
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8");
+        response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode("联系人信息表", "UTF-8") + ".xlsx");
+        ServletOutputStream outputStream = response.getOutputStream();
+        writer.flush(outputStream, true);
+        writer.close();
+        outputStream.flush();
+        outputStream.close();
+    }
 
 
 
